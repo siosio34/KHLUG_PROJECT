@@ -1,1 +1,1 @@
-#pragma once
+#include "Configure.h"

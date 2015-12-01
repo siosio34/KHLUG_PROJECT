@@ -72,7 +72,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Include;C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Lib\x64;C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\amd64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Lib;C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -95,6 +95,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>wpcap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Winpcap_Packet_System.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
