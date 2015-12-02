@@ -1,5 +1,75 @@
 #include "Winpcap_Packet_System.h"
 
+
+void Winpcap_Packet_System::Print_Hex(void *Data, u_int len)
+{
+
+	int iLin;
+	int iCnt;
+	fprintf(stdout, "\n=================================================================================\n");
+	fprintf(stdout, "[  Addr  ]  00 01 02 03 04 05 06 07   08 09 0A 0B 0C 0D 0E 0F | \n");
+	fprintf(stdout, "---------------------------------------------------------------------------------\n");
+
+	for (iLin = 0; iLin < len; iLin += 16)
+	{
+		fprintf(stdout, "[%08x] ", iLin);
+		for (iCnt = 0; iCnt < 16; ++iCnt)
+		{
+			if (iCnt == 8)
+			{
+				fprintf(stdout, "  ");
+			}
+
+			if ((iCnt + iLin) < len)
+			{
+				fprintf(stdout, " %02X", *((u_char*)Data + iCnt + iLin));
+			}
+			else
+			{
+				fprintf(stdout, "   ");
+
+			}
+		}
+
+
+		printf(" | ");
+
+		for (int iCnt = 0; iCnt < 16; ++iCnt)
+		{
+			if (iCnt == 8)
+			{
+				fprintf(stdout, " ");
+			}
+
+
+			if ((iCnt + iLin) < len)
+			{
+
+				if (((*((u_char*)Data + iCnt + iLin)) >= 33) && ((*((u_char*)Data + iCnt + iLin)) <= 126))
+				{
+					fprintf(stdout, "%c", *((u_char*)Data + iCnt + iLin));
+				}
+				else
+				{
+					printf(".");
+				}
+			}
+			else
+			{
+				printf(" ");
+			}
+
+		}
+
+		printf("\n");
+	}
+
+	fprintf(stdout, "=================================================================================\n\n");
+
+
+}
+
+
 int Winpcap_Packet_System::open_device(pcap_t *_adhandle)
 {
 	pcap_if_t *alldevs;
@@ -71,11 +141,13 @@ void Winpcap_Packet_System::pcap_handler(u_char * param, const pcap_pkthdr * hea
 	ip_header *ih;
 	tcp_header *th;
 	udp_header *uh;
-
+	char data_buffer[2048];
 	u_int ip_len;
 	u_int th_len;
 	u_int uh_len;
 	u_short sport, dport;
+	int data_len;
+	 unsigned char *data_ptr;
 
 	eth = (etc_header*)(const u_char*)(pkt_data);
 
@@ -116,23 +188,49 @@ void Winpcap_Packet_System::pcap_handler(u_char * param, const pcap_pkthdr * hea
 	
 	printf(" IP Header length : %d", ip_len);
 	// 다른것도 있는데 귀찮다 나중에 하자.
+
 	printf("\n\n");
 
-	//TCP와 UDP 일때 정보를 추가해주면된다.
-	if (ih->proto == 6)
+	//TCP와 UDP 일때 정보를 추가해주면된다. ICMP 도 있지만 나중에 구현하도록하자.
+	if (ih->proto == TCP_PRO)
 	{
+		th = (tcp_header *)((u_char*)ih + ip_len); // tcp나 udp 나 둘다 ip 헤더 끝나고 시작되기때문에 이렇게 해도 무관하다.
+		th_len = th->hlen << 2; // TCP 헤더만의 크기계산 , 옵션 포함 더길다
+		printf("============TCP Information==================\n");
+		printf("=============================================\n");
+		printf(" Source Port : %d\n", ntohs(th->sourceport));
+		printf(" Destination Port : %d\n", ntohs(th->destport));
+		printf(" FLAG : %d\n", th->flag);
+		printf(" TCP Length : %d\n", th_len);
+		printf("=============================================\n");
+		
+		data_len = ntohs(ih->tlen) - ip_len - th_len;
+		data_ptr = (unsigned char*)th + th_len;
+
+		for (int i = 0; i < data_len; i++)
+		{
+			data_buffer[i] = (isprint(data_ptr[i])) ? data_ptr[i] : '.';
+		}
+		data_buffer[data_len] = '\0';
+		printf("%s", data_buffer);
+		
+	
+	}
+	else if (ih->proto == UDP_PRO)
+	{
+		//uh = (udp_header *)((u_char*)ih + ip_len); // ip 헤더값은 고정이 아니기 때문에 이렇게 해줘야한다.
+		//printf("============UDP Information==================\n");
+		//printf("============================================\n");
+		//printf(" Source Port : %d\n", sport);
+		//printf(" Destination Port : %d\n", dport);
+		//printf(" UDP Len : %d\n", uh->len);
+		//printf(" UDP Checksum : %d\n", uh->crc);
+		//printf("=============================================\n");
 
 	}
 
 	
-	
 }
-
-//void Winpcap_Packet_System::
-//{
-//
-//}
-
 
 
 void Winpcap_Packet_System::_RunPacketCapture()

@@ -1,6 +1,24 @@
 #pragma once
 #define HAVE_REMOTE
+
 #define ETHER_ADDR_LEN 6
+#define ETHERTYPE_IP 0x0800
+#define ETHERTYPE_ARP 0x0806
+#define ETHERTYPE_REVARP 0X8035
+#define ETHERTYPE_IPv6 0X86dd
+
+#define ARP_REQUEST 1
+#define ARP_REPLY 2
+
+#define TH_FIN 0x01
+#define TH_SYN 0x02
+#define TH_RST 0x04
+#define TH_PUSH 0x08
+#define TH_ACK 0x10
+#define TH_URG 0x20
+
+#define TCP_PRO 6
+#define UDP_PRO 17  
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "IPHLPAPI.lib")
@@ -13,16 +31,18 @@
 #include <iphlpapi.h>
 #include <Windows.h>
 #include <conio.h>
-#include <netiodef.h>
 
 
 #include <iostream>
 #include <string>
 #include <vector>
 #include <thread> // c++ 11 쓰레드를 쓰기 위해 추가한 헤더.
+
+
 // 오픈 소스인 pcap 라이브러리와 windivert 라이브러리 인클루드 
 // winpcap과 windivert의 차이는 오는 패킷이나 가는 패킷을 가로 챌수 있는지 아님 보기만 하는지 차이
 // windiver 함수를 사용할려면 관리자 모드로 켜야되고 이상하게 디버깅을 시도하면 패킷 자체가 안열림 ( 아마 드라이버 서명 문제인듯 )
+
 #include <pcap.h>
 #include <windivert.h>
 
@@ -34,8 +54,24 @@ typedef struct etc_header {
 	u_int8_t  ether_dhost[ETHER_ADDR_LEN];     //destination Mac
 	u_int8_t  ether_shost[ETHER_ADDR_LEN];     //source  Mac
 	u_int16_t ether_type;
-}etc_header;
+}ETC_HEADER;
 
+typedef struct arp_header
+{
+	u_short hard_type; //
+	u_short Pro_type; // 
+	u_char hard_length;
+	u_char pro_length;
+	u_short op_code;
+
+	u_char hr_adr[6];  //sender hard address
+	u_char sr_adr[4]; // sender sourse ip
+
+	u_char Tahr_adr[6]; // target Hard address
+	u_char Tasr_adr[4]; // target source IP
+
+
+}ARP_HEADER;
 /* IPv4 header */
 typedef struct ip_header {
 	u_char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
@@ -49,7 +85,7 @@ typedef struct ip_header {
 	u_char  saddr[4];      // Source address
 	u_char  daddr[4];      // Destination address
 	u_int   op_pad;         // Option + Padding
-}ip_header;
+}IPHEADER;
 
 
 // TCP Header
@@ -58,11 +94,9 @@ typedef struct tcp_header {
 	unsigned short destport;				// destination port
 	unsigned long seqno;				// sequenz number
 	unsigned long ackno;				// acknowledge number
-
-	unsigned char hlen;					// Header length
-
+	unsigned char th_x2 : 4;
+	unsigned char hlen:4;					// Header length
 	unsigned char flag;					// flags
-
 	unsigned short window;				// window
 	unsigned short chksum;				// checksum
 	unsigned short urgptr;				// urgend pointer
@@ -76,4 +110,7 @@ typedef struct udp_header {
 	u_short dport;          // Destination port
 	u_short len;            // Datagram length
 	u_short crc;            // Checksum
-}udp_header;
+}UDPHEADER;
+
+//TCP PAYLOAD 길이 ip header의 총길이 - ip헤더크기 - tcp 헤더크기
+//UDP DATAGRAM 길이 호스트 바이 오더로 바뀬 udp_header.len에서  udp 헤더크기를 빼주어야한다.
