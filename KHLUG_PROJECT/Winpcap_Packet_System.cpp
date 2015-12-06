@@ -150,34 +150,24 @@ int Winpcap_Packet_System::open_device(pcap_t *_adhandle, int _flag)
 			}
 		}
 
-		//게이트웨어 ip획득
-		if (Adapter_addr->FirstUnicastAddress != NULL)
+		//게이트웨어 아이피 설정
+		while (Adapter_addr->FirstUnicastAddress != NULL)
 		{
-			for (i = 0; Adapter_addr->FirstUnicastAddress != NULL; i++)
+			sockaddr_in *sa_in = (sockaddr_in *)Adapter_addr->FirstUnicastAddress->Address.lpSockaddr;
+
+			if (sa_in->sin_family == AF_INET)
 			{
-				if (Adapter_addr->FirstUnicastAddress->Address.lpSockaddr->sa_family == AF_INET)
+				for (int i = 0; i < 4; i++)
 				{
-					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[2]);
-					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[3]);
-					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[4]);
-					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[5]);
-
-
-					// 공격자의 ip 획득
-					sockaddr_in *sa_in = (sockaddr_in *)Adapter_addr->FirstUnicastAddress->Address.lpSockaddr;
-					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b1);
-					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b2);
-					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b3);
-					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b4);
-
-					break;
+					Basic_addr.attacker_ip.push_back(Adapter_addr->FirstUnicastAddress->Address.lpSockaddr->sa_data[i + 2]); // 공격자의 IP 설정
+					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[i + 2]); // 게이트 IP 설정
 				}
-
-				Adapter_addr->FirstUnicastAddress = Adapter_addr->FirstUnicastAddress->Next;
-
+				break;
 			}
 
+			Adapter_addr->FirstUnicastAddress = Adapter_addr->FirstUnicastAddress->Next;
 		}
+
 
 		// 희생자 IP 설정
 		Input_Victim_ip();
@@ -581,7 +571,7 @@ void Winpcap_Packet_System::_RunArpSpoofing()
 	{
 
 		cout << "떼엑";
-		Send_Arp_Infection_Packet();
+		
 		// Victim 정보획득
 		// 상대방 ip만 알아도 모든 정보를 불러올 수 있도록 자동화해야 한다.
 		// 1. GateWay IP 와 GateWay Mac 을 알아야 된다.
@@ -590,12 +580,13 @@ void Winpcap_Packet_System::_RunArpSpoofing()
 
 		// -> open_device 에서 처리를해줌 플래그 값 1로 줘야함.
 
-		// Arp Infection 패킷을 만들어야 한다.(source 나 , destination 공유기)
+		// Arp Infection 패킷을 만들어야 한다.
 		// 1. 감염 패킷은 ARP HEADER와 ETERNET 헤더를 합친것이다.
 		// 2. 감염 성공시 arp -a 명령어를 통해 확인할 수 있다. (인터넷도 끊긴다 )
 		// 3. 정보 획득으로 얻은 정보를 통해 나 자신(공격자)로 부터 희생자로부터 infection 패킷을 전송한다.
 
 		// -> void Send_Arp_Infection_Packet();
+		Send_Arp_Infection_Packet(); // 이거 어택커 게이트로 해야됨.
 
 		// Arp Relay 패킷을 만들어야 한다. ( source 공유기 destination 희생자 )
 		// 1. ARP_INFECTION 만 진행하면 나 자신도 희생자에 의해서 감염되기 때문에
