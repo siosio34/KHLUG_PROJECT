@@ -28,6 +28,7 @@ void Application::ProcessInput(int num)
 		RunPacketCapture();
 		break;
 	case 2:
+		RunArpSpoofing();
 		break;
 	case 3:
 	case 4:
@@ -40,4 +41,9 @@ void Application::ProcessInput(int num)
 void Application::RunPacketCapture()
 {
 	pcap_obj._RunPacketCapture();
+}
+
+void Application::RunArpSpoofing()
+{
+	pcap_obj._RunArpSpoofing();
 }

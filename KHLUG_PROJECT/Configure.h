@@ -20,6 +20,15 @@
 #define TCP_PRO 6
 #define UDP_PRO 17  
 
+#define WORKING_BUFFER_SIZE 15000
+#define MAX_TRIES 3
+
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+
+#define GET_GATEMAC_MODE 0
+#define GET_VICTIMEMAC_MODE 1
+
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "IPHLPAPI.lib")
 #pragma comment(lib, "windivert.lib")
@@ -64,14 +73,20 @@ typedef struct arp_header
 	u_char pro_length;
 	u_short op_code;
 
-	u_char hr_adr[6];  //sender hard address
-	u_char sr_adr[4]; // sender sourse ip
+	u_char source_Macaddr[6];  //sender hard address
+	u_char source_ipaddr[4]; // sender sourse ip
 
-	u_char Tahr_adr[6]; // target Hard address
-	u_char Tasr_adr[4]; // target source IP
+	u_char Des_Macaddr[6]; // target Hard address
+	u_char Des_ipaddr[4]; // target source IP
 
 
 }ARP_HEADER;
+
+typedef struct infection {
+	ETC_HEADER etc;
+	ARP_HEADER arp;
+} infection;
+
 /* IPv4 header */
 typedef struct ip_header {
 	u_char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
@@ -112,5 +127,15 @@ typedef struct udp_header {
 	u_short crc;            // Checksum
 }UDPHEADER;
 
+typedef struct Basic_ip_mac_addr
+{
+	vector<u_char> attacker_ip; // 어택커 ip
+	vector<u_char> attacker_mac; // 어택커맥
+	vector<u_char> gate_ip; // 게이트웨어 ip
+	vector<u_char> gate_mac; // 게이트웨어 mac
+	vector<u_char> victim_ip; // 희생자 ip
+	vector<u_char> victim_mac; // victim mac
+
+}; Basic_ip_mac_addr
 //TCP PAYLOAD 길이 ip header의 총길이 - ip헤더크기 - tcp 헤더크기
 //UDP DATAGRAM 길이 호스트 바이 오더로 바뀬 udp_header.len에서  udp 헤더크기를 빼주어야한다.
