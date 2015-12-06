@@ -70,7 +70,7 @@ void Winpcap_Packet_System::Print_Hex(void *Data, u_int len)
 }
 
 
-int Winpcap_Packet_System::open_device(pcap_t *_adhandle)
+int Winpcap_Packet_System::open_device(pcap_t *_adhandle, int _flag)
 {
 	pcap_if_t *alldevs;
 	pcap_if_t *d;
@@ -131,55 +131,58 @@ int Winpcap_Packet_System::open_device(pcap_t *_adhandle)
 
 	 // 이 아래는 ARP_SPOOfing 전용이다.
 
-	 // 게이트 웨이 정보를 들고온다.
-	PIP_ADAPTER_ADDRESSES Adapter_addr;
-	PIP_ADAPTER_GATEWAY_ADDRESS Gate_addr;
-
-	Adapter_addr = Find_Addapter(d->name); // 어댑터
-	Gate_addr = Adapter_addr->FirstGatewayAddress; // 게이트 웨이
-
-
-	// 공격자의 Mac 주소 획득 
-	if (Adapter_addr->PhysicalAddressLength != 0) 
+	if (_flag == 1)
 	{
-		for (int i = 0; i < (int)Adapter_addr->PhysicalAddressLength;i++) 
-		{
-			Basic_addr.attacker_mac.push_back(Adapter_addr->PhysicalAddress[i]); // 공격자의 맥 설정.
-		}
-	}
+		// 게이트 웨이 정보를 들고온다.
+		PIP_ADAPTER_ADDRESSES Adapter_addr;
+		PIP_ADAPTER_GATEWAY_ADDRESS Gate_addr;
 
-	while (Adapter_addr->FirstUnicastAddress != NULL)
-	{
-		sockaddr_in *sa_in = (sockaddr_in *)Adapter_addr->FirstUnicastAddress->Address.lpSockaddr;
-		for (int i = 0; i < 4; i++)
+		Adapter_addr = Find_Addapter(d->name); // 어댑터
+		Gate_addr = Adapter_addr->FirstGatewayAddress; // 게이트 웨이
+
+
+		// 공격자의 Mac 주소 획득 
+		if (Adapter_addr->PhysicalAddressLength != 0)
 		{
-			Basic_addr.attacker_ip.push_back(Adapter_addr->FirstUnicastAddress->Address.lpSockaddr->sa_data[i + 2]); // 공격자의 IP 설정
-			Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[i + 2]); // 게이트 IP 설정
+			for (int i = 0; i < (int)Adapter_addr->PhysicalAddressLength; i++)
+			{
+				Basic_addr.attacker_mac.push_back(Adapter_addr->PhysicalAddress[i]); // 공격자의 맥 설정.
+			}
 		}
 
-		Adapter_addr->FirstUnicastAddress = Adapter_addr->FirstUnicastAddress->Next;
+		while (Adapter_addr->FirstUnicastAddress != NULL)
+		{
+			sockaddr_in *sa_in = (sockaddr_in *)Adapter_addr->FirstUnicastAddress->Address.lpSockaddr;
+			
+			if (sa_in->sin_family == AF_INET)
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					Basic_addr.attacker_ip.push_back(Adapter_addr->FirstUnicastAddress->Address.lpSockaddr->sa_data[i + 2]); // 공격자의 IP 설정
+					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[i + 2]); // 게이트 IP 설정
+				}
+				break;
+			}
+
+			Adapter_addr->FirstUnicastAddress = Adapter_addr->FirstUnicastAddress->Next;
+		}
+
+
+		// 희생자 IP 설정
+		Input_Victim_ip();
+
+
+		// 1. 희생자 IP -> 입력
+		// 2. 공격자의 MAC  및 3. IP 는 어댑터만 알면 찾을 수 있다.
+		// 4. 게이트워어 IP 도 어댑터로 찾을 수 있다.
+		// 5. 게이트웨어 MAC 과 6. 희생자 MAC 은 ARP 헤더를 사용해서 알아낸다.
+
+		Basic_addr.gate_mac = Send_ARP_For_Macaddr(adhandle, GET_GATEMAC_MODE);
+		Basic_addr.victim_mac = Send_ARP_For_Macaddr(adhandle, GET_VICTIMEMAC_MODE);
+
+		// 구해온 게이트 웨이 정보로 ARP SPOOFING 에 필요한 자료를 수집한다.
 	}
-
-
-	// 희생자 IP 설정
-	Input_Victim_ip();
-
-
-	// 1. 희생자 IP -> 입력
-	// 2. 공격자의 MAC  및 3. IP 는 어댑터만 알면 찾을 수 있다.
-	// 4. 게이트워어 IP 도 어댑터로 찾을 수 있다.
-	// 5. 게이트웨어 MAC 과 6. 희생자 MAC 은 ARP 헤더를 사용해서 알아낸다.
-
-	Basic_addr.gate_mac = Send_ARP_For_Macaddr(adhandle, GET_GATEMAC_MODE);
-	Basic_addr.victim_mac = Send_ARP_For_Macaddr(adhandle, GET_VICTIMEMAC_MODE);
-
-	
-	// 구해온 게이트 웨이 정보로 ARP SPOOFING 에 필요한 자료를 수집한다.
-
-
-	
-
-	
+	cout << " 으엑 " << endl;
 	pcap_freealldevs(alldevs);
 
 
@@ -305,6 +308,7 @@ int Winpcap_Packet_System::Input_Victim_ip()
 		Basic_addr.victim_ip.push_back(num);
 		temp_mac.erase(0, pos + 1);
 	}
+
 	num = atoi(temp_mac.c_str());
 	Basic_addr.victim_ip.push_back(num);
 
@@ -456,7 +460,7 @@ vector<u_char> Winpcap_Packet_System::Send_ARP_For_Macaddr(pcap_t* _handle, int 
 	struct pcap_pkthdr *header;
 	const u_char *pkt_data;
 
-	bool check = false;
+	
 	infection* Recieve_arp;
 
 	while ((res = pcap_next_ex(_handle, &header, &pkt_data)) >= 0) 
@@ -499,7 +503,7 @@ vector<u_char> Winpcap_Packet_System::Send_ARP_For_Macaddr(pcap_t* _handle, int 
 
 void Winpcap_Packet_System::_RunPacketCapture()
 {
-	if (open_device(adhandle) == -1)
+	if (open_device(adhandle,0) == -1)
 	{
 		return;
 	}
@@ -513,13 +517,15 @@ void Winpcap_Packet_System::_RunPacketCapture()
 void Winpcap_Packet_System::_RunArpSpoofing()
 {
 
-	if (open_device(adhandle) == -1)
+	if (open_device(adhandle,1) == -1)
 	{
 		return;
 	}
 
 	else
 	{
+		Basic_addr;
+
 		
 		// Victim 정보획득
 		// 상대방 ip만 알아도 모든 정보를 불러올 수 있도록 자동화해야 한다.
@@ -527,7 +533,8 @@ void Winpcap_Packet_System::_RunArpSpoofing()
 		// 2. 공격자 자신의 Mac과 공격자 자신의 ip 를 알아야 한다.
 		// 3. 상대방 IP 주소를 알면 상대방 MAC 주소도 알수 있다.
 
-		// ->
+
+		// -> open_device 에서 처리를해줌
 
 		// Arp Infection 패킷을 만들어야 한다.(source 나 , destination 공유기)
 		// 1. 감염 패킷은 ARP HEADER와 ETERNET 헤더를 합친것이다.

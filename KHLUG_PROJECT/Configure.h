@@ -136,6 +136,6 @@ typedef struct Basic_ip_mac_addr
 	vector<u_char> victim_ip; // 희생자 ip
 	vector<u_char> victim_mac; // victim mac
 
-}; Basic_ip_mac_addr
+} Basic_ip_mac_addr;
 //TCP PAYLOAD 길이 ip header의 총길이 - ip헤더크기 - tcp 헤더크기
 //UDP DATAGRAM 길이 호스트 바이 오더로 바뀬 udp_header.len에서  udp 헤더크기를 빼주어야한다.
