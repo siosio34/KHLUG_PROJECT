@@ -4,7 +4,7 @@
 void Winpcap_Packet_System::Print_Hex(void *Data, u_int len)
 {
 
-	int iLin;
+	u_int iLin;
 	int iCnt;
 	fprintf(stdout, "\n=================================================================================\n");
 	fprintf(stdout, "[  Addr  ]  00 01 02 03 04 05 06 07   08 09 0A 0B 0C 0D 0E 0F | \n");
@@ -196,12 +196,12 @@ void Winpcap_Packet_System::pcap_handler(u_char * param, const pcap_pkthdr * hea
 	etc_header *eth;
 	ip_header *ih;
 	tcp_header *th;
-	udp_header *uh;
+	//udp_header *uh;
 	char data_buffer[2048];
 	u_int ip_len;
 	u_int th_len;
-	u_int uh_len;
-	u_short sport, dport;
+	//u_int uh_len;
+	//u_short sport, dport;
 	int data_len;
 	 unsigned char *data_ptr;
 
@@ -289,7 +289,7 @@ void Winpcap_Packet_System::pcap_handler(u_char * param, const pcap_pkthdr * hea
 
 int Winpcap_Packet_System::Input_Victim_ip()
 {
-	infection *infec;
+	//infection *infec;
 	string temp_mac;
 	string temp_split = ".";
 	string token;
@@ -395,7 +395,7 @@ PIP_ADAPTER_ADDRESSES Winpcap_Packet_System::Find_Addapter(string _device_name)
 				NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 				// Default language
 				(LPTSTR)& lpMsgBuf, 0, NULL)) {
-				printf("\tError: %s", lpMsgBuf);
+				printf("\tError: %s", (char*)lpMsgBuf);
 				LocalFree(lpMsgBuf);
 				if (pAddresses)
 					FREE(pAddresses);
@@ -467,7 +467,7 @@ vector<u_char> Winpcap_Packet_System::Send_ARP_For_Macaddr(pcap_t* _handle, int 
 	{
 		if (pcap_sendpacket(_handle, (u_char*)infec, 42) != 0)
 		{
-			fprintf(stderr, "\nError sending the packet: \n", pcap_geterr(_handle));
+			fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(_handle));
 		}
 
 		Recieve_arp = (infection *)(pkt_data); // 받아오는 패킷
@@ -530,7 +530,7 @@ void Winpcap_Packet_System::Send_Arp_Infection_Packet()
 	{
 		if (pcap_sendpacket(adhandle, temp, 42) != 0)
 		{
-			fprintf(stderr, "\nError sending the packet: \n", pcap_geterr(adhandle));
+			fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(adhandle));
 			return;
 		}
 		
@@ -576,14 +576,14 @@ void Winpcap_Packet_System::Send_Arp_Relay_Packet()
 				for_change_packet[n + 6] = Basic_addr.attacker_mac[n];// _temsp2->etc.ether_shost[n];
 			}
 
-			for (int n = 12; n < header->len; n++)
+			for (u_int n = 12; n < header->len; n++)
 			{
 				for_change_packet[n] = pkt_data[n];
 			}
 
 			if (pcap_sendpacket(adhandle, for_change_packet, header->len) != 0)
 			{
-				fprintf(stderr, "\nError sending the packet: \n", pcap_geterr(adhandle));
+				fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(adhandle));
 				return;
 			}
 		}
