@@ -71,11 +71,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Include;C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Lib;C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\amd64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Include;C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\include;C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Include;C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Lib;C:\Users\영제\Documents\Visual Studio 2015\Projects\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\amd64;C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\amd64;C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\include;C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WinDivert-1.1.8-MSVC\amd64;C:\Users\jangh\Documents\GitHubVisualStudio\KHLUG_PROJECT\KHLUG_PROJECT\WpdPack_4_1_2\WpdPack\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -104,12 +106,13 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WPCAP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>wpcap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
