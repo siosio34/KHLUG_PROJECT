@@ -29,6 +29,8 @@
 #define GET_GATEMAC_MODE 0
 #define GET_VICTIMEMAC_MODE 1
 
+#define MAXBUF  0xFFFF
+
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "IPHLPAPI.lib")
 #pragma comment(lib, "windivert.lib")
@@ -41,11 +43,12 @@
 #include <Windows.h>
 #include <conio.h>
 
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <thread> // c++ 11 쓰레드를 쓰기 위해 추가한 헤더.
+#include <mutex> // MUTEX 객체 필수적이라능
+#include <chrono> // 정확한 시간 구하기
 
 
 // 오픈 소스인 pcap 라이브러리와 windivert 라이브러리 인클루드 
@@ -139,3 +142,13 @@ typedef struct Basic_ip_mac_addr
 } Basic_ip_mac_addr;
 //TCP PAYLOAD 길이 ip header의 총길이 - ip헤더크기 - tcp 헤더크기
 //UDP DATAGRAM 길이 호스트 바이 오더로 바뀬 udp_header.len에서  udp 헤더크기를 빼주어야한다.
+
+
+typedef struct
+{
+	WINDIVERT_ADDRESS send_addr; // 보낼 방향 및 플래그 설정
+	chrono::system_clock::time_point receive_packet_time; // 그 패킷을 저장한 시간
+	int len;
+	u_char buff[65536];
+
+}SENDSAVEPACKET;

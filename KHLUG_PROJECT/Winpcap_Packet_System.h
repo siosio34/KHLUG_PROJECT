@@ -24,8 +24,6 @@ public:
 	 void Send_Arp_Infection_Packet();
 	 void Send_Arp_Relay_Packet();
 
-
-
 	void _RunPacketCapture();
 	void _RunArpSpoofing();
 
