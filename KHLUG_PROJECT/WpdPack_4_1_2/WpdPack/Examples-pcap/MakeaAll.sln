@@ -1,27 +1,25 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UDPdump", "UDPdump\UDPdump.vcxproj", "{B484FA1C-6508-4DDA-8DA7-EA14DB6585AE}"
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UDPdump", "UDPdump\UDPdump.vcproj", "{B484FA1C-6508-4DDA-8DA7-EA14DB6585AE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic_dump", "basic_dump\basic_dump.vcxproj", "{80E57A40-2069-4261-8470-A56A94EA4D48}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic_dump", "basic_dump\basic_dump.vcproj", "{80E57A40-2069-4261-8470-A56A94EA4D48}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic_dump_ex", "basic_dump_ex\basic_dump_ex.vcxproj", "{6C124B8E-5310-4294-9148-0D62AF96A649}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic_dump_ex", "basic_dump_ex\basic_dump_ex.vcproj", "{6C124B8E-5310-4294-9148-0D62AF96A649}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iflist", "iflist\iflist.vcxproj", "{AD22E53E-6B36-4514-8F90-A92D2CFAAEBF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iflist", "iflist\iflist.vcproj", "{AD22E53E-6B36-4514-8F90-A92D2CFAAEBF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pcap_filter", "pcap_filter\pcap_filter.vcxproj", "{1F9B464B-56FE-4649-BE0E-E0B9B3DDEB00}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pcap_filter", "pcap_filter\pcap_filter.vcproj", "{1F9B464B-56FE-4649-BE0E-E0B9B3DDEB00}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pktdump_ex", "pktdump_ex\pktdump_ex.vcxproj", "{E501F12B-2CAD-4B65-BFB9-E012553BE0A2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pktdump_ex", "pktdump_ex\pktdump_ex.vcproj", "{E501F12B-2CAD-4B65-BFB9-E012553BE0A2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "readfile", "readfile\readfile.vcxproj", "{D47AE2DA-FDC6-430E-AA6A-15290E3AA5B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "readfile", "readfile\readfile.vcproj", "{D47AE2DA-FDC6-430E-AA6A-15290E3AA5B5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "readfile_ex", "readfile_ex\readfile_ex.vcxproj", "{C34F10C8-A733-4D64-B1AF-2AAA53FA6506}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "readfile_ex", "readfile_ex\readfile_ex.vcproj", "{C34F10C8-A733-4D64-B1AF-2AAA53FA6506}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "savedump", "savedump\savedump.vcxproj", "{FC4AF1CF-72A5-4862-9F38-5063A588B2A6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "savedump", "savedump\savedump.vcproj", "{FC4AF1CF-72A5-4862-9F38-5063A588B2A6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sendpack", "sendpack\sendpack.vcxproj", "{58E5469B-4C43-43C5-9E63-86D92D870D19}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sendpack", "sendpack\sendpack.vcproj", "{58E5469B-4C43-43C5-9E63-86D92D870D19}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
